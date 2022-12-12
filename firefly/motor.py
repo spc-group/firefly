@@ -1,5 +1,3 @@
-import subprocess
-
 import haven
 from firefly import display
 

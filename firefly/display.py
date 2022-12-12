@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 from pydm import Display
@@ -16,8 +17,7 @@ class FireflyDisplay(Display):
         cmds = self.caqtdm_command.split()
         macro_str = ",".join(f"{key}={val}" for key, val in macros.items())
         cmds = [*cmds, "-macro", macro_str, self.caqtdm_ui_file]
-        print(cmds)
-        # subprocess.Popen(cmds)
+        subprocess.Popen(cmds)
 
     def customize_device(self):
         pass
