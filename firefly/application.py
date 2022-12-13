@@ -37,6 +37,13 @@ class FireflyApplication(PyDMApplication):
         # Launch the default display
         self.show_status_window()
 
+    def _setup_window_action(self, action_name: str, text: str, slot: QtCore.Slot):
+        action = QtWidgets.QAction(self)
+        action.setObjectName(action_name)
+        action.setText(text)
+        action.triggered.connect(slot)
+        setattr(self, action_name, action)
+
     def setup_window_actions(self):
         """Create QActions for clicking on menu items, shortcuts, etc.
 
@@ -55,6 +62,8 @@ class FireflyApplication(PyDMApplication):
         self.launch_queuemonitor_action.setObjectName(f"launch_queuemonitor_action")
         self.launch_queuemonitor_action.setText("Queue Monitor")
         self.launch_queuemonitor_action.triggered.connect(self.launch_queuemonitor)
+        # Launch energy window
+        self._setup_window_action(action_name="show_energy_window_action", text="Energy", slot=self.show_energy_window)
 
     def launch_queuemonitor(self):
         config = load_config()["queueserver"]
@@ -172,3 +181,7 @@ class FireflyApplication(PyDMApplication):
     @QtCore.Slot()
     def show_cameras_window(self):
         self.show_window(FireflyMainWindow, ui_dir / "cameras.py", name="cameras")
+
+    @QtCore.Slot()
+    def show_energy_window(self):
+        self.show_window(FireflyMainWindow, ui_dir / "energy.py", name="energy")
