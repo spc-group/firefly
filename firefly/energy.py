@@ -26,6 +26,7 @@ class EnergyDisplay(display.FireflyDisplay):
         _macros["MONO_MODE_PV"] = _macros.get("MONO_MODE_PV", mono.mode.pvname)
         _macros["MONO_ENERGY_PV"] = _macros.get("MONO_ENERGY_PV", mono.energy.user_readback.pvname)
         energy = registry.find(name="energy")
+        _macros["ID_PREFIX"] = energy.id_prefix
         _macros["ID_ENERGY_PV"] = _macros.get("ID_ENERGY_PV", f"{energy.id_prefix}:Energy.VAL")
         _macros["ID_GAP_PV"] = _macros.get("ID_GAP_PV", f"{energy.id_prefix}:Gap.VAL")
         # Load X-ray database for calculating edge energies
