@@ -18,6 +18,7 @@ def test_setup(qapp):
     FireflyMainWindow()
     qapp.prepare_queue_client(api=api)
 
+
 def test_queue_re_control(qapp):
     """Test if the run engine can be controlled from the queue client."""
     api = MagicMock()
@@ -41,6 +42,30 @@ def test_queue_re_control(qapp):
     # Check if the queue started
     time.sleep(0.1)
     api.queue_start.assert_called_once()
+    # Resume the queue
+    api.reset_mock()
+    qapp.resume_runengine_action.trigger()
+    # Check if the API resumed
+    time.sleep(0.1)
+    api.re_resume.assert_called_once_with()
+    # Stop the queue
+    api.reset_mock()
+    qapp.stop_runengine_action.trigger()
+    # Check if the API stopped
+    time.sleep(0.1)
+    api.re_stop.assert_called_once_with()
+    # Halt the queue
+    api.reset_mock()
+    qapp.halt_runengine_action.trigger()
+    # Check if the API halted
+    time.sleep(0.1)
+    api.re_halt.assert_called_once_with()
+    # Abort the queue
+    api.reset_mock()
+    qapp.abort_runengine_action.trigger()
+    # Check if the API aborted
+    time.sleep(0.1)
+    api.re_abort.assert_called_once_with()
 
 
 def test_run_plan(qapp, qtbot):

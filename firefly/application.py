@@ -156,10 +156,14 @@ class FireflyApplication(PyDMApplication):
         client.moveToThread(thread)
         # Connect actions to slots for controlling the queueserver
         self.pause_runengine_action.triggered.connect(
-            partial(client.request_pause, defer=True))        
+            partial(client.request_pause, defer=True))
         self.pause_runengine_now_action.triggered.connect(
             partial(client.request_pause, defer=False))
         self.start_queue_action.triggered.connect(client.start_queue)
+        self.resume_runengine_action.triggered.connect(client.resume_runengine)
+        self.stop_runengine_action.triggered.connect(client.stop_runengine)
+        self.halt_runengine_action.triggered.connect(client.halt_runengine)
+        self.abort_runengine_action.triggered.connect(client.abort_runengine)
         # Connect signals to slots for executing plans on queueserver
         self.queue_item_added.connect(client.add_queue_item)
         # Connect signals/slots for queueserver state changes

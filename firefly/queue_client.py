@@ -69,6 +69,22 @@ class QueueClient(QObject):
         self.api.queue_start()
 
     @Slot()
+    def resume_runengine(self):
+        self.api.re_resume()
+
+    @Slot()
+    def stop_runengine(self):
+        self.api.re_stop()
+
+    @Slot()
+    def abort_runengine(self):
+        self.api.re_abort()
+
+    @Slot()
+    def halt_runengine(self):
+        self.api.re_halt()
+
+    @Slot()
     def check_queue_length(self):
         queue = self.api.queue_get()
         queue_length = len(queue['items'])
