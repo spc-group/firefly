@@ -145,7 +145,7 @@ class PlanMainWindow(FireflyMainWindow):
             navbar.removeAction(action)
         # Add applications runengine actions
         app = QtWidgets.QApplication.instance()
-        navbar.addAction(app.start_queue_action)        
+        navbar.addAction(app.start_queue_action)
         navbar.addSeparator()
         navbar.addAction(app.pause_runengine_action)
         navbar.addAction(app.pause_runengine_now_action)

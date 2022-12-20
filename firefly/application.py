@@ -42,7 +42,6 @@ class FireflyApplication(PyDMApplication):
     stop_runengine_action: QAction
     abort_runengine_action: QAction
     halt_runengine_action: QAction
-    start_queue: QAction
 
     # Signals for running plans on the queueserver
     queue_item_added = Signal(object)
@@ -107,19 +106,20 @@ class FireflyApplication(PyDMApplication):
         """Create QActions for controlling the bluesky runengine."""
         # Action for controlling the run engine
         actions = [
-            ("pause_runengine_action", "Pause", "fa5s.stopwatch"),
-            ("pause_runengine_now_action", "Pause Now", "fa5s.pause"),
-            ("resume_runengine_action", "Resume", "fa5s.play"),
-            ("stop_runengine_action", "Stop", "fa5s.stop"),
-            ("abort_runengine_action", "Abort", "fa5s.eject"),
-            ("halt_runengine_action", "Halt", "fa5s.ban"),
-            ("start_queue_action", "Start", "fa5s.play"),
+            ("pause_runengine_action", "Pause", "fa5s.stopwatch", "Pause run-engine at next checkpoint."),
+            ("pause_runengine_now_action", "Pause Now", "fa5s.pause", "Pause run-engine right now."),
+            ("resume_runengine_action", "Resume", "fa5s.play", "Resume run-engine from the most recent checkpoint."),
+            ("stop_runengine_action", "Stop", "fa5s.stop", "Stop run (mark as success)."),
+            ("abort_runengine_action", "Abort", "fa5s.eject", "Abort run (mark as failure)."),
+            ("halt_runengine_action", "Halt", "fa5s.ban", "Halt run (skip cleanup)."),
+            ("start_queue_action", "Start", "fa5s.play", "Start the queue."),
         ]
-        for name, text, icon_name in actions:
+        for name, text, icon_name, tooltip in actions:
             action = QtWidgets.QAction(self)
             icon = qta.icon(icon_name)
             action.setText(text)
             action.setIcon(icon)
+            action.setToolTip(tooltip)
             setattr(self, name, action)
             # action.triggered.connect(slot)
 

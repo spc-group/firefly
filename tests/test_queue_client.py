@@ -17,6 +17,8 @@ def test_setup(qapp):
     api = MagicMock()
     FireflyMainWindow()
     qapp.prepare_queue_client(api=api)
+    assert hasattr(qapp, "pause_runengine_action")
+    assert qapp.pause_runengine_action.toolTip() == "Pause run-engine at next checkpoint."
 
 
 def test_queue_re_control(qapp):
@@ -54,6 +56,7 @@ def test_queue_re_control(qapp):
     # Check if the API stopped
     time.sleep(0.1)
     api.re_stop.assert_called_once_with()
+    api.queue_stop.assert_called_once_with()
     # Halt the queue
     api.reset_mock()
     qapp.halt_runengine_action.trigger()

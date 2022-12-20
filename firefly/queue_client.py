@@ -74,14 +74,17 @@ class QueueClient(QObject):
 
     @Slot()
     def stop_runengine(self):
+        self.api.queue_stop()
         self.api.re_stop()
 
     @Slot()
     def abort_runengine(self):
+        self.api.queue_stop()
         self.api.re_abort()
 
     @Slot()
     def halt_runengine(self):
+        self.api.queue_stop()
         self.api.re_halt()
 
     @Slot()
