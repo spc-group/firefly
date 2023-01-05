@@ -1,4 +1,6 @@
 import logging
+from typing import Mapping
+from functools import partial
 
 from pydm.main_window import PyDMMainWindow
 # from qtpy.QtCore import Slot
@@ -9,6 +11,9 @@ from haven.instrument import motor
 from haven import load_config
 
 log = logging.getLogger(__name__)
+
+
+__all__ = ["FireflyMainWindow", "PlanMainWindow"]
 
 
 class FireflyMainWindow(PyDMMainWindow):
@@ -143,7 +148,7 @@ class PlanMainWindow(FireflyMainWindow):
         navbar = self.ui.navbar
         for action in navbar.actions():
             navbar.removeAction(action)
-        # Add applications runengine actions
+        # Add applications runengine actions to the navbar
         app = QtWidgets.QApplication.instance()
         navbar.addAction(app.start_queue_action)
         navbar.addSeparator()
@@ -154,17 +159,40 @@ class PlanMainWindow(FireflyMainWindow):
         navbar.addAction(app.stop_runengine_action)
         navbar.addAction(app.abort_runengine_action)
         navbar.addAction(app.halt_runengine_action)
+        # Connect signals for hiding disabled runengine actions
+        for action in app.runengine_actions:
+            slot = partial(self.set_action_visibility, action=action)
+            action.enabled_changed.connect(slot)
 
     def customize_ui(self):
         super().customize_ui()
         self.setup_navbar()
         # Connect signals/slots
         app = QtWidgets.QApplication.instance()
-        app.queue_length_changed.connect(self.set_navbar_visibility)
+        app.queue_length_changed.connect(self.set_navbar_queuelength)
+        # app.queue_length_changed.connect(self.set_navbar_state)
+
+    def set_action_visibility(self, is_visible: bool, action: QtWidgets.QAction):
+        """Add or remove the given action from the navbar based on
+        *is_visible*.
+
+        """
+        navbar = self.ui.navbar
+        if is_visible:
+            navbar.addAction(action)
+        else:
+            navbar.removeAction(action)
 
     @QtCore.Slot(int)
-    def set_navbar_visibility(self, queue_length: int):
-        """Determine whether to make the navbar be visible."""
+    def set_navbar_queuelength(self, queue_length: int):
+        """Determine whether to make the navbar be visible.
+        
+        Parameters
+        ==========
+        queue_length
+          How many items are currently in the queue.
+        
+        """
         log.debug(f"Setting navbar visibility. Queue length: {queue_length}")
         navbar = self.ui.navbar
         navbar.setVisible(queue_length > 0)

@@ -2,6 +2,7 @@ import time
 import pytest
 
 from firefly.main_window import FireflyMainWindow, PlanMainWindow
+from firefly.queue_client import REStates
 from firefly.application import FireflyApplication
 
 
@@ -32,6 +33,29 @@ def test_navbar_autohide(qapp, qtbot):
     with qtbot.waitSignal(qapp.queue_length_changed):
         qapp.queue_length_changed.emit(0)
     assert not navbar.isVisible()
+
+
+def test_navbar_button_visibility(qapp, qtbot):
+    """Test that the queue navbar only shows certain buttons at certain times."""
+    window = PlanMainWindow()
+    window.show()
+    navbar = window.ui.navbar
+    # Pretend the queue has some things in it
+    with qtbot.waitSignal(qapp.runengine_state_changed):
+        qapp.runengine_state_changed.emit(REStates.RUNNING)
+    # Check that the right actions were toggled on and off
+    actions = [ac.objectName() for ac in navbar.actions()]
+    assert "pause_runengine_action" in actions
+    assert "start_queue_action" not in actions
+    assert "resume_queue_action" not in actions
+    # Pretend the run engine has paused
+    with qtbot.waitSignal(qapp.runengine_state_changed):
+        qapp.runengine_state_changed.emit(REStates.PAUSED)
+    # Check that the right actions were toggled on and off
+    actions = [ac.objectName() for ac in navbar.actions()]
+    assert "pause_runengine_action" not in actions
+    assert "start_queue_action" not in actions
+    assert "resume_runengine_action" in actions
 
 
 def test_add_menu_action(qapp):

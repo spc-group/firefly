@@ -1,12 +1,12 @@
 import logging
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Optional, Union, Mapping
+from typing import Optional, Union, Mapping, Sequence
 from functools import partial
 import subprocess
 
 from qtpy import QtWidgets, QtCore
-from qtpy.QtWidgets import QAction
+# from qtpy.QtWidgets import QAction
 from qtpy.QtCore import Slot, QThread, Signal, QObject
 import qtawesome as qta
 from pydm.application import PyDMApplication
@@ -18,7 +18,7 @@ from haven.exceptions import ComponentNotFound
 from haven import HavenMotor, registry, load_config
 
 from .main_window import FireflyMainWindow, PlanMainWindow
-from .queue_client import QueueClient, QueueClientThread
+from .queue_client import QueueClient, QueueClientThread, REStates, RunEngineAction
 
 generator = type((x for x in []))
 
@@ -35,19 +35,22 @@ class FireflyApplication(PyDMApplication):
     xafs_scan_window = None
 
     # Actions for controlling the queueserver
-    start_queue_action: QAction
-    pause_runengine_action: QAction
-    pause_runengine_now_action: QAction
-    resume_runengine_action: QAction
-    stop_runengine_action: QAction
-    abort_runengine_action: QAction
-    halt_runengine_action: QAction
+    start_queue_action: RunEngineAction
+    pause_runengine_action: RunEngineAction
+    pause_runengine_now_action: RunEngineAction
+    resume_runengine_action: RunEngineAction
+    stop_runengine_action: RunEngineAction
+    abort_runengine_action: RunEngineAction
+    halt_runengine_action: RunEngineAction
+    state_actions: Mapping
+    runengine_actions: Sequence = []
 
     # Signals for running plans on the queueserver
     queue_item_added = Signal(object)
 
     # Signals responding to queueserver changes
     queue_length_changed = Signal(int)
+    runengine_state_changed = Signal(REStates)
 
     def __init__(self, ui_file=None, use_main_window=False, *args, **kwargs):
         # Instantiate the parent class
@@ -114,14 +117,38 @@ class FireflyApplication(PyDMApplication):
             ("halt_runengine_action", "Halt", "fa5s.ban", "Halt run (skip cleanup)."),
             ("start_queue_action", "Start", "fa5s.play", "Start the queue."),
         ]
+        self.runengine_actions = []
         for name, text, icon_name, tooltip in actions:
-            action = QtWidgets.QAction(self)
+            action = RunEngineAction(self)
             icon = qta.icon(icon_name)
             action.setText(text)
             action.setIcon(icon)
             action.setToolTip(tooltip)
+            action.setObjectName(name)
             setattr(self, name, action)
-            # action.triggered.connect(slot)
+            self.runengine_actions.append(action)
+        # Respond to when the runengine state changes
+        self.runengine_state_changed.connect(self.enable_runengine_actions)
+        self.state_actions = {
+            REStates.IDLE: [self.start_queue_action],
+            REStates.RUNNING: [self.pause_runengine_action,
+                               self.pause_runengine_now_action],
+            REStates.PAUSING: [self.pause_runengine_now_action],
+            REStates.PAUSED: [self.resume_runengine_action,
+                              self.stop_runengine_action,
+                              self.abort_runengine_action,
+                              self.halt_runengine_action]
+        }
+
+    @QtCore.Slot(REStates)
+    def enable_runengine_actions(self, new_state: str):
+        """Enable/disable runengine actions based on RE state."""
+        active_actions = self.state_actions[new_state]
+        for action in self.runengine_actions:
+            if action in active_actions:
+                action.setEnabled(True)
+            else:
+                action.setEnabled(False)
 
     def prepare_motor_windows(self):
         """Prepare the support for opening motor windows."""
@@ -154,6 +181,7 @@ class FireflyApplication(PyDMApplication):
         client = QueueClient(api=api)
         thread = QueueClientThread(client=client)
         client.moveToThread(thread)
+        thread.start()        
         # Connect actions to slots for controlling the queueserver
         self.pause_runengine_action.triggered.connect(
             partial(client.request_pause, defer=True))
@@ -168,8 +196,6 @@ class FireflyApplication(PyDMApplication):
         self.queue_item_added.connect(client.add_queue_item)
         # Connect signals/slots for queueserver state changes
         client.length_changed.connect(self.queue_length_changed)
-        # Start the thread
-        thread.start()
         # Save references to the thread and runner
         self._queue_client = client
         self._queue_thread = thread

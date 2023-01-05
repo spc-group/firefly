@@ -1,8 +1,10 @@
+from enum import Enum
 import time
 from typing import Optional
 import logging
 
 from qtpy.QtCore import QThread, QObject, Signal, Slot, QTimer
+from qtpy.QtWidgets import QAction
 from bluesky_queueserver_api.zmq import REManagerAPI
 from bluesky_queueserver_api import BPlan
 
@@ -12,8 +14,23 @@ from haven import RunEngine
 log = logging.getLogger()
 
 
+class RunEngineAction(QAction):
+    enabled_changed = Signal(bool)
+
+    def setEnabled(self, new_state):
+        super().setEnabled(new_state)
+        self.enabled_changed.emit(new_state)
+
+
+class REStates(Enum):
+    """Possible states for a bluesky runengine."""
+    IDLE = "Idle"
+    RUNNING = "Running"
+    PAUSING = "Pausing"
+    PAUSED = "Paused"
+
+
 class QueueClientThread(QThread):
-    
     def __init__(self, *args, client, **kwargs):
         self.client = client
         super().__init__(*args, **kwargs)
@@ -28,7 +45,7 @@ class QueueClient(QObject):
     _last_queue_length: Optional[int] = None
 
     # Signals responding to queue changes
-    state_changed = Signal()
+    state_changed = Signal(str)
     length_changed = Signal(int)
 
     def __init__(self, *args, api, **kwargs):
@@ -91,6 +108,8 @@ class QueueClient(QObject):
     def check_queue_length(self):
         queue = self.api.queue_get()
         queue_length = len(queue['items'])
-        log.debug(f"Queue length updated: {queue_length}")
-        self.length_changed.emit(queue_length)
+        if queue_length != self._last_queue_length:
+            # Only update if the value has changed
+            log.debug(f"Queue length updated: {queue_length}")
+            self.length_changed.emit(queue_length)
         self._last_queue_length = queue_length
