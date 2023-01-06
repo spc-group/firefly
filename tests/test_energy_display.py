@@ -8,9 +8,10 @@ import haven
 
 from firefly.main_window import FireflyMainWindow
 from firefly.energy import EnergyDisplay
+from firefly.queue_client import REStates
 
 
-def test_energy_macros(qtbot):
+def test_energy_macros(qtbot, sim_registry):
     # Create fake device
     mono = haven.instrument.monochromator.Monochromator("mono_ioc", name="monochromator")
     haven.registry.register(
@@ -28,7 +29,13 @@ def test_energy_macros(qtbot):
     assert macros["ID_GAP_PV"] == "ID25ds:Gap.VAL"
 
 
-def test_move_energy(qtbot, qapp):
+def test_move_energy(qtbot, qapp, sim_registry):
+    # Create fake device
+    mono = haven.instrument.monochromator.Monochromator("mono_ioc", name="monochromator")
+    haven.registry.register(
+        haven.instrument.energy_positioner.EnergyPositioner(mono_pv="",
+                                                            id_prefix="ID25ds",
+                                                            name="energy"))
     # Load display
     FireflyMainWindow()
     disp = EnergyDisplay()
@@ -43,9 +50,14 @@ def test_move_energy(qtbot, qapp):
         qtbot.mouseClick(btn, QtCore.Qt.LeftButton)
 
 
-def test_predefined_energies(qtbot, qapp):
+def test_predefined_energies(qtbot, qapp, sim_registry):
+    mono = haven.instrument.monochromator.Monochromator("mono_ioc", name="monochromator")
+    haven.registry.register(
+        haven.instrument.energy_positioner.EnergyPositioner(mono_pv="",
+                                                            id_prefix="ID25ds",
+                                                            name="energy"))
     # Load display
-    FireflyMainWindow()
+    FireflyMainWindow().show()
     disp = EnergyDisplay()
     # Check that the combo box was populated
     combo_box = disp.ui.edge_combo_box
@@ -59,3 +71,29 @@ def test_predefined_energies(qtbot, qapp):
         qtbot.keyClicks(combo_box, "Ni K (8333 eV)\t")
     line_edit = disp.ui.target_energy_lineedit
     assert line_edit.text() == "8333.000"
+
+
+def test_button_styles(qtbot, qapp):
+    """Test that the "Set Energy" button changes style."""
+    # Create fake device
+    mono = haven.instrument.monochromator.Monochromator("mono_ioc", name="monochromator")
+    haven.registry.register(
+        haven.instrument.energy_positioner.EnergyPositioner(mono_pv="",
+                                                            id_prefix="ID25ds",
+                                                            name="energy"))
+    # Load display
+    FireflyMainWindow()
+    disp = EnergyDisplay()
+    # Does the button become blue when the queue is > 0
+    btn = disp.ui.set_energy_button
+    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000):
+        qapp.queue_length_changed.emit(1)
+    assert btn.style().property('background-color') == "rgb(0, 123, 255)"
+    # Does the button go back to being 
+    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000):
+        qapp.queue_length_changed.emit(0)
+    assert btn.style().property('background-color') == "rgb(40, 167, 69)"
+    # If the run-engine is not idle, is the button blue?
+    with qtbot.waitSignal(qapp.runengine_state_changed, timeout=1000):
+        qapp.runengine_state_changed.emit(REStates.RUNNING)
+    assert btn.style().property('background-color') == "rgb(0, 123, 255)"

@@ -221,8 +221,11 @@
        </item>
        <item>
         <widget class="QPushButton" name="run_scan_button">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;body&gt;&lt;p style=&quot;background: rgb(250, 250, 210); border-color: black;&quot;&gt;&lt;span style=&quot;color: rgb(40, 167, 69);&quot;&gt;Run (green)&lt;/span&gt; or &lt;span style=&quot;color: blue;&quot;&gt;queue (blue)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="styleSheet">
-          <string notr="true">background-color: #28a745</string>
+          <string notr="true">background-color: rgb(40, 167, 69); color: white;</string>
          </property>
          <property name="text">
           <string>Run Scan</string>

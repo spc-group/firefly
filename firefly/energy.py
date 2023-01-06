@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 class EnergyDisplay(display.FireflyDisplay):
     caqtdm_mono_ui_file = "/net/s25data/xorApps/ui/DCMControlCenter.ui"
     caqtdm_id_ui_file = "/net/s25data/xorApps/epics/synApps_6_2/ioc/25ida/25idaApp/op/ui/IDControl.ui"
+    plan_buttons  = ["set_energy_button"]
     min_energy = 4000
     max_energy = 27000
     stylesheet_danger = "background: rgb(220, 53, 69); color: white; border-color: rgb(220, 53, 69)"

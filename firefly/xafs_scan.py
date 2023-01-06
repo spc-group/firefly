@@ -45,6 +45,8 @@ class XafsScanRegion:
 
 
 class XafsScanDisplay(display.FireflyDisplay):
+    plan_buttons = ["run_scan_button"]
+    
     def customize_ui(self):
         self.reset_default_regions()
         # Connect the E0 checkbox to the E0 combobox
