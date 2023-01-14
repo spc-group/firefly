@@ -49,8 +49,7 @@ class FireflyApplication(PyDMApplication):
     queue_item_added = Signal(object)
 
     # Signals responding to queueserver changes
-    queue_length_changed = Signal(int)
-    runengine_state_changed = Signal(REStates)
+    queue_status_changed = Signal(dict)
 
     def __init__(self, ui_file=None, use_main_window=False, *args, **kwargs):
         # Instantiate the parent class
@@ -128,7 +127,7 @@ class FireflyApplication(PyDMApplication):
             setattr(self, name, action)
             self.runengine_actions.append(action)
         # Respond to when the runengine state changes
-        self.runengine_state_changed.connect(self.enable_runengine_actions)
+        self.queue_status_changed.connect(self.enable_runengine_actions)
         self.state_actions = {
             REStates.IDLE: [self.start_queue_action],
             REStates.RUNNING: [self.pause_runengine_action,
@@ -141,9 +140,10 @@ class FireflyApplication(PyDMApplication):
         }
 
     @QtCore.Slot(REStates)
-    def enable_runengine_actions(self, new_state: str):
+    def enable_runengine_actions(self, new_status: Mapping):
         """Enable/disable runengine actions based on RE state."""
-        active_actions = self.state_actions[new_state]
+        re_state = new_status["re_state"]
+        active_actions = self.state_actions[re_state]
         for action in self.runengine_actions:
             if action in active_actions:
                 action.setEnabled(True)
@@ -195,7 +195,7 @@ class FireflyApplication(PyDMApplication):
         # Connect signals to slots for executing plans on queueserver
         self.queue_item_added.connect(client.add_queue_item)
         # Connect signals/slots for queueserver state changes
-        client.length_changed.connect(self.queue_length_changed)
+        client.status_changed.connect(self.queue_status_changed)
         # Save references to the thread and runner
         self._queue_client = client
         self._queue_thread = thread

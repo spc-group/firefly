@@ -1,6 +1,7 @@
 from enum import Enum
+from strenum import StrEnum
 import time
-from typing import Optional
+from typing import Optional, Mapping
 import logging
 
 from qtpy.QtCore import QThread, QObject, Signal, Slot, QTimer
@@ -22,12 +23,12 @@ class RunEngineAction(QAction):
         self.enabled_changed.emit(new_state)
 
 
-class REStates(Enum):
+class REStates(StrEnum):
     """Possible states for a bluesky runengine."""
-    IDLE = "Idle"
-    RUNNING = "Running"
-    PAUSING = "Pausing"
-    PAUSED = "Paused"
+    IDLE = "idle"
+    RUNNING = "running"
+    PAUSING = "pausing"
+    PAUSED = "paused"
 
 
 class QueueClientThread(QThread):
@@ -36,25 +37,29 @@ class QueueClientThread(QThread):
         super().__init__(*args, **kwargs)
         # Timer for polling the queueserver
         self.timer = QTimer()
-        self.timer.timeout.connect(self.client.update)
+        self.timer.timeout.connect(self.client.update_status)
         self.timer.start(1000)
 
 
 class QueueClient(QObject):
     api: REManagerAPI
-    _last_queue_length: Optional[int] = None
+    _last_status: Optional[Mapping] = {}
 
     # Signals responding to queue changes
-    state_changed = Signal(str)
-    length_changed = Signal(int)
+    status_changed = Signal(dict)
 
     def __init__(self, *args, api, **kwargs):
         self.api = api
         super().__init__(*args, **kwargs)
 
-    def update(self):
-        log.debug("Updating queue client.")
-        self.check_queue_length()
+    def update_status(self):
+        log.debug("Updating queue status.")
+        status = self.api.status()
+        if status != self._last_status:
+            # Only update if the value has changed
+            log.debug(f"Queue status update: {status}")
+            self.status_changed.emit(status)
+        self._last_status = status
 
     @Slot(bool)
     def request_pause(self, defer: bool = True):
@@ -103,13 +108,3 @@ class QueueClient(QObject):
     def halt_runengine(self):
         self.api.queue_stop()
         self.api.re_halt()
-
-    @Slot()
-    def check_queue_length(self):
-        queue = self.api.queue_get()
-        queue_length = len(queue['items'])
-        if queue_length != self._last_queue_length:
-            # Only update if the value has changed
-            log.debug(f"Queue length updated: {queue_length}")
-            self.length_changed.emit(queue_length)
-        self._last_queue_length = queue_length

@@ -32,23 +32,12 @@ class FireflyDisplay(Display):
         self.customize_ui()
         # Handlers for changing the button styles based on runengine state
         app = QtWidgets.QApplication.instance()
-        app.queue_length_changed.connect(self.update_queue_length)
-        app.runengine_state_changed.connect(self.update_runengine_state)
+        app.queue_status_changed.connect(self.update_button_styles)
 
-    @QtCore.Slot(int)
-    def update_queue_length(self, queue_length: int):
-        self._queue_length = queue_length
-        self.update_button_styles()
-
-    @QtCore.Slot(REStates)
-    def update_runengine_state(self, new_state: REStates):
-        self._runengine_state = new_state
-        self.update_button_styles()
-
-    def update_button_styles(self):
+    def update_button_styles(self, status):
         # Determine which stylesheet to use
-        is_idle = self._runengine_state == REStates.IDLE
-        has_queue = self._queue_length > 0
+        is_idle = status['re_state'] == REStates.IDLE
+        has_queue = status['items_in_queue'] > 0
         if is_idle and not has_queue:
             new_style = self.run_plan_button_style
         else:

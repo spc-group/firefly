@@ -18,7 +18,9 @@ def test_setup(qapp):
     FireflyMainWindow()
     qapp.prepare_queue_client(api=api)
     assert hasattr(qapp, "pause_runengine_action")
-    assert qapp.pause_runengine_action.toolTip() == "Pause run-engine at next checkpoint."
+    assert (
+        qapp.pause_runengine_action.toolTip() == "Pause run-engine at next checkpoint."
+    )
 
 
 def test_queue_re_control(qapp):
@@ -78,44 +80,53 @@ def test_run_plan(qapp, qtbot):
     api.item_add.return_value = {"success": True, "qsize": 2}
     qapp.prepare_queue_client(api=api)
     # Send a plan
-    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000,
-                          check_params_cb=lambda l: l == 2):
+    with qtbot.waitSignal(
+        qapp.queue_length_changed, timeout=1000, check_params_cb=lambda l: l == 2
+    ):
         qapp.queue_item_added.emit({})
     # Check if the API sent it
     api.item_add.assert_called_once_with(item={})
 
 
-def test_check_queue_length(qapp, qtbot):
+def test_check_status(qapp, qtbot):
     FireflyMainWindow()
     api = MagicMock()
     qapp.prepare_queue_client(api=api)
     # Check that the queue length is changed
-    api.queue_get.return_value = {
-        'success': True,
-        'msg': '',
-        'items': [],
-        'running_item': {},
-        'plan_queue_uid': 'f682e6fa-983c-4bd8-b643-b3baec2ec764'
+    status = {
+        "msg": "RE Manager v0.0.18",
+        "items_in_queue": 0,
+        "items_in_history": 0,
+        "running_item_uid": None,
+        "manager_state": "idle",
+        "queue_stop_pending": False,
+        "worker_environment_exists": True,
+        "worker_environment_state": "idle",
+        "worker_background_tasks": 0,
+        "re_state": "idle",
+        "pause_pending": False,
+        "run_list_uid": "daaa454b-fdfb-42ca-82aa-63c837758907",
+        "plan_queue_uid": "6918a069-260d-450c-8651-a27cab9b8b4e",
+        "plan_history_uid": "b7b2f0fb-2436-4788-be97-8bd4cd7ef5a1",
+        "devices_existing_uid": "f8f871bd-191b-419e-ab87-267799d82fb3",
+        "plans_existing_uid": "a1e9c70e-35ba-4ed4-9e77-b41a65f92c4f",
+        "devices_allowed_uid": "c5c56cac-99b4-46c1-ba0b-912276672fb9",
+        "plans_allowed_uid": "46218e65-58f1-47a4-8af5-119c642e59f7",
+        "plan_queue_mode": {"loop": False},
+        "task_results_uid": "88611cc8-f40c-4f5a-bb04-31d09c6ea1c5",
+        "lock_info_uid": "7bfd8a21-dae3-419d-8e1c-0345566dd7cf",
+        "lock": {"environment": False, "queue": False},
     }
+    api.status.return_value = status
     qapp.pause_runengine_action.setEnabled(True)
     qapp.pause_runengine_action.setEnabled(False)
     qapp.pause_runengine_action.setDisabled(False)
     qapp.pause_runengine_action.setDisabled(True)
     time.sleep(0.1)
-    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000,
-                          check_params_cb=lambda l: l == 0):
-        qapp._queue_client.check_queue_length()
+    with qtbot.waitSignal(
+        qapp.queue_status_changed, timeout=1000, check_params_cb=lambda d: d == status
+    ):
+        qapp._queue_client.update_status()
     # Check that it isn't emitted a second time
-    with qtbot.assertNotEmitted(qapp.queue_length_changed):
-        qapp._queue_client.check_queue_length()
-    # Now check a non-empty length queue
-    api.queue_get.return_value = {
-        'success': True,
-        'msg': '',
-        'items': ["hello", "world"],
-        'running_item': {},
-        'plan_queue_uid': 'f682e6fa-983c-4bd8-b643-b3baec2ec764'
-    }
-    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000,
-                          check_params_cb=lambda l: l == 2):
-        qapp._queue_client.check_queue_length()
+    with qtbot.assertNotEmitted(qapp.queue_status_changed):
+        qapp._queue_client.update_status()
