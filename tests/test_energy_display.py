@@ -86,14 +86,14 @@ def test_button_styles(qtbot, qapp):
     disp = EnergyDisplay()
     # Does the button become blue when the queue is > 0
     btn = disp.ui.set_energy_button
-    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000):
-        qapp.queue_length_changed.emit(1)
+    with qtbot.waitSignal(qapp.queue_status_changed, timeout=1000):
+        qapp.queue_status_changed.emit({'items_in_queue': 1, 're_state': REStates.IDLE})
     assert btn.style().property('background-color') == "rgb(0, 123, 255)"
     # Does the button go back to being 
-    with qtbot.waitSignal(qapp.queue_length_changed, timeout=1000):
-        qapp.queue_length_changed.emit(0)
+    with qtbot.waitSignal(qapp.queue_status_changed, timeout=1000):
+        qapp.queue_status_changed.emit({'items_in_queue': 0, 're_state': REStates.IDLE})
     assert btn.style().property('background-color') == "rgb(40, 167, 69)"
     # If the run-engine is not idle, is the button blue?
-    with qtbot.waitSignal(qapp.runengine_state_changed, timeout=1000):
-        qapp.runengine_state_changed.emit(REStates.RUNNING)
+    with qtbot.waitSignal(qapp.queue_status_changed, timeout=1000):
+        qapp.queue_status_changed.emit({'items_in_queue': 0, 're_state': REStates.RUNNING})
     assert btn.style().property('background-color') == "rgb(0, 123, 255)"

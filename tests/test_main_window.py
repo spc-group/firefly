@@ -26,12 +26,17 @@ def test_navbar_autohide(qapp, qtbot):
     window.show()
     navbar = window.ui.navbar
     # Pretend the queue has some things in it
-    with qtbot.waitSignal(qapp.queue_length_changed):
-        qapp.queue_length_changed.emit(3)
+    status = {
+        "items_in_queue": 3,
+        "re_state": REStates.IDLE
+    }
+    with qtbot.waitSignal(qapp.queue_status_changed):
+        qapp.queue_status_changed.emit(status)
     assert navbar.isVisible()
     # Make the queue be empty
-    with qtbot.waitSignal(qapp.queue_length_changed):
-        qapp.queue_length_changed.emit(0)
+    status["items_in_queue"] = 0
+    with qtbot.waitSignal(qapp.queue_status_changed):
+        qapp.queue_status_changed.emit(status)
     assert not navbar.isVisible()
 
 
@@ -41,16 +46,21 @@ def test_navbar_button_visibility(qapp, qtbot):
     window.show()
     navbar = window.ui.navbar
     # Pretend the queue has some things in it
-    with qtbot.waitSignal(qapp.runengine_state_changed):
-        qapp.runengine_state_changed.emit(REStates.RUNNING)
+    status = {
+        "re_state": REStates.RUNNING,
+        "items_in_queue": 0,
+    }
+    with qtbot.waitSignal(qapp.queue_status_changed):
+        qapp.queue_status_changed.emit(status)
     # Check that the right actions were toggled on and off
     actions = [ac.objectName() for ac in navbar.actions()]
     assert "pause_runengine_action" in actions
     assert "start_queue_action" not in actions
     assert "resume_queue_action" not in actions
     # Pretend the run engine has paused
-    with qtbot.waitSignal(qapp.runengine_state_changed):
-        qapp.runengine_state_changed.emit(REStates.PAUSED)
+    status["re_state"] = REStates.PAUSED
+    with qtbot.waitSignal(qapp.queue_status_changed):
+        qapp.queue_status_changed.emit(status)
     # Check that the right actions were toggled on and off
     actions = [ac.objectName() for ac in navbar.actions()]
     assert "pause_runengine_action" not in actions

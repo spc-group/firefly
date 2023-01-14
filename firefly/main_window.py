@@ -10,6 +10,8 @@ from haven.instrument import motor
 from haven.instrument import motor
 from haven import load_config
 
+from .queue_client import REStates
+
 log = logging.getLogger(__name__)
 
 
@@ -169,8 +171,7 @@ class PlanMainWindow(FireflyMainWindow):
         self.setup_navbar()
         # Connect signals/slots
         app = QtWidgets.QApplication.instance()
-        app.queue_length_changed.connect(self.set_navbar_queuelength)
-        # app.queue_length_changed.connect(self.set_navbar_state)
+        app.queue_status_changed.connect(self.set_navbar_visibility)
 
     def set_action_visibility(self, is_visible: bool, action: QtWidgets.QAction):
         """Add or remove the given action from the navbar based on
@@ -183,16 +184,19 @@ class PlanMainWindow(FireflyMainWindow):
         else:
             navbar.removeAction(action)
 
-    @QtCore.Slot(int)
-    def set_navbar_queuelength(self, queue_length: int):
+    @QtCore.Slot(dict)
+    def set_navbar_visibility(self, status: Mapping):
         """Determine whether to make the navbar be visible.
         
         Parameters
         ==========
-        queue_length
-          How many items are currently in the queue.
+        status
+          Queueserver status dictionary.
         
         """
+        queue_length = status["items_in_queue"]
+        re_state = status["re_state"]
         log.debug(f"Setting navbar visibility. Queue length: {queue_length}")
         navbar = self.ui.navbar
-        navbar.setVisible(queue_length > 0)
+        make_visible = queue_length > 0 or re_state != REStates.IDLE
+        navbar.setVisible(make_visible)

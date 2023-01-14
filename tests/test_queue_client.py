@@ -78,10 +78,12 @@ def test_run_plan(qapp, qtbot):
     FireflyMainWindow()
     api = MagicMock()
     api.item_add.return_value = {"success": True, "qsize": 2}
+    status = {"items_in_queue": 2, "re_state": "idle"}
+    api.status.return_value = status    
     qapp.prepare_queue_client(api=api)
     # Send a plan
     with qtbot.waitSignal(
-        qapp.queue_length_changed, timeout=1000, check_params_cb=lambda l: l == 2
+        qapp.queue_status_changed, timeout=1000, check_params_cb=lambda d: d['items_in_queue'] == 2
     ):
         qapp.queue_item_added.emit({})
     # Check if the API sent it

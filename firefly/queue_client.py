@@ -81,7 +81,7 @@ class QueueClient(QObject):
         result = self.api.item_add(item=item)
         if result['success']:
             log.info(f"Item added. New queue length: {result['qsize']}")
-            self.length_changed.emit(result['qsize'])
+            self.update_status()
         else:
             log.error(f"Did not add queue item to queue: {result}")
             raise RuntimeError(result)
