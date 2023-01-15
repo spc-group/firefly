@@ -25,6 +25,7 @@ class RunEngineAction(QAction):
 
 class REStates(StrEnum):
     """Possible states for a bluesky runengine."""
+    NULL = "null"
     IDLE = "idle"
     RUNNING = "running"
     PAUSING = "pausing"
@@ -38,7 +39,7 @@ class QueueClientThread(QThread):
         # Timer for polling the queueserver
         self.timer = QTimer()
         self.timer.timeout.connect(self.client.update_status)
-        self.timer.start(1000)
+        self.timer.start(500)
 
 
 class QueueClient(QObject):
@@ -55,10 +56,12 @@ class QueueClient(QObject):
     def update_status(self):
         log.debug("Updating queue status.")
         status = self.api.status()
-        if status != self._last_status:
+        if status != self._last_status or True:
             # Only update if the value has changed
             log.debug(f"Queue status update: {status}")
             self.status_changed.emit(status)
+        else:
+            log.debug(f"Queue status not changed: {status}")
         self._last_status = status
 
     @Slot(bool)
@@ -89,22 +92,24 @@ class QueueClient(QObject):
     @Slot()
     def start_queue(self):
         self.api.queue_start()
+        self.update_status()
 
     @Slot()
     def resume_runengine(self):
         self.api.re_resume()
+        self.update_status()
 
     @Slot()
     def stop_runengine(self):
-        self.api.queue_stop()
         self.api.re_stop()
+        self.update_status()
 
     @Slot()
     def abort_runengine(self):
-        self.api.queue_stop()
         self.api.re_abort()
+        self.update_status()
 
     @Slot()
     def halt_runengine(self):
-        self.api.queue_stop()
         self.api.re_halt()
+        self.update_status()

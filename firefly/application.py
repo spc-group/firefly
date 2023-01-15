@@ -111,8 +111,8 @@ class FireflyApplication(PyDMApplication):
             ("pause_runengine_action", "Pause", "fa5s.stopwatch", "Pause run-engine at next checkpoint."),
             ("pause_runengine_now_action", "Pause Now", "fa5s.pause", "Pause run-engine right now."),
             ("resume_runengine_action", "Resume", "fa5s.play", "Resume run-engine from the most recent checkpoint."),
-            ("stop_runengine_action", "Stop", "fa5s.stop", "Stop run (mark as success)."),
-            ("abort_runengine_action", "Abort", "fa5s.eject", "Abort run (mark as failure)."),
+            ("stop_runengine_action", "Stop", "fa5s.check", "Stop run (mark as success)."),
+            ("abort_runengine_action", "Abort", "fa5s.times", "Abort run (mark as failure)."),
             ("halt_runengine_action", "Halt", "fa5s.ban", "Halt run (skip cleanup)."),
             ("start_queue_action", "Start", "fa5s.play", "Start the queue."),
         ]
@@ -129,6 +129,7 @@ class FireflyApplication(PyDMApplication):
         # Respond to when the runengine state changes
         self.queue_status_changed.connect(self.enable_runengine_actions)
         self.state_actions = {
+            REStates.NULL: [],
             REStates.IDLE: [self.start_queue_action],
             REStates.RUNNING: [self.pause_runengine_action,
                                self.pause_runengine_now_action],

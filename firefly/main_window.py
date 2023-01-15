@@ -161,10 +161,10 @@ class PlanMainWindow(FireflyMainWindow):
         navbar.addAction(app.stop_runengine_action)
         navbar.addAction(app.abort_runengine_action)
         navbar.addAction(app.halt_runengine_action)
-        # Connect signals for hiding disabled runengine actions
-        for action in app.runengine_actions:
-            slot = partial(self.set_action_visibility, action=action)
-            action.enabled_changed.connect(slot)
+        # # Connect signals for hiding disabled runengine actions
+        # for action in app.runengine_actions:
+        #     slot = partial(self.set_action_visibility, action=action)
+        #     action.enabled_changed.connect(slot)
 
     def customize_ui(self):
         super().customize_ui()
