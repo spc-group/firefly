@@ -85,12 +85,13 @@ class FireflyApplication(PyDMApplication):
         # Action for showing the beamline status window
         self.show_status_window_action = QtWidgets.QAction(self)
         self.show_status_window_action.setObjectName(f"show_status_window_action")
-        self.show_status_window_action.setText("Beamline Status")
+        self.show_status_window_action.setText("&Beamline Status...")
         self.show_status_window_action.triggered.connect(self.show_status_window)
         # Action for launch queue-monitor
         self.launch_queuemonitor_action = QtWidgets.QAction(self)
         self.launch_queuemonitor_action.setObjectName(f"launch_queuemonitor_action")
-        self.launch_queuemonitor_action.setText("Queue Monitor")
+        self.launch_queuemonitor_action.setText("&Queue Monitor...")
+        self.launch_queuemonitor_action.setShortcut("Alt+q")
         self.launch_queuemonitor_action.triggered.connect(self.launch_queuemonitor)
         # Launch energy window
         self._setup_window_action(action_name="show_energy_window_action", text="Energy", slot=self.show_energy_window)
@@ -108,13 +109,13 @@ class FireflyApplication(PyDMApplication):
         """Create QActions for controlling the bluesky runengine."""
         # Action for controlling the run engine
         actions = [
-            ("pause_runengine_action", "Pause", "fa5s.stopwatch", "Pause run-engine at next checkpoint."),
-            ("pause_runengine_now_action", "Pause Now", "fa5s.pause", "Pause run-engine right now."),
-            ("resume_runengine_action", "Resume", "fa5s.play", "Resume run-engine from the most recent checkpoint."),
-            ("stop_runengine_action", "Stop", "fa5s.check", "Stop run (mark as success)."),
-            ("abort_runengine_action", "Abort", "fa5s.times", "Abort run (mark as failure)."),
-            ("halt_runengine_action", "Halt", "fa5s.ban", "Halt run (skip cleanup)."),
-            ("start_queue_action", "Start", "fa5s.play", "Start the queue."),
+            ("pause_runengine_action", "&Pause", "fa5s.stopwatch", "Pause run-engine at next checkpoint."),
+            ("pause_runengine_now_action", "Pause &Now", "fa5s.pause", "Pause run-engine right now."),
+            ("resume_runengine_action", "&Resume", "fa5s.play", "Resume run-engine from the most recent checkpoint."),
+            ("stop_runengine_action", "S&top", "fa5s.check", "Stop run (mark as success)."),
+            ("abort_runengine_action", "&Abort", "fa5s.times", "Abort run (mark as failure)."),
+            ("halt_runengine_action", "&Halt", "fa5s.ban", "Halt run (skip cleanup)."),
+            ("start_queue_action", "&Start", "fa5s.play", "Start the queue."),
         ]
         self.runengine_actions = []
         for name, text, icon_name, tooltip in actions:

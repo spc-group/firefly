@@ -74,50 +74,65 @@ class FireflyMainWindow(PyDMMainWindow):
         # Positioners menu
         self.ui.menuPositioners = QtWidgets.QMenu(self.ui.menubar)
         self.ui.menuPositioners.setObjectName("menuPositioners")
-        self.ui.menuPositioners.setTitle("Positioners")
+        self.ui.menuPositioners.setTitle("&Positioners")
         self.ui.menubar.addAction(self.ui.menuPositioners.menuAction())
         # Sample viewer
         self.add_menu_action(
             action_name="actionShow_Sample_Viewer",
-            text="Sample",
+            text="&Sample...",
             menu=self.ui.menuPositioners)
         # Motors sub-menu
         self.ui.menuMotors = QtWidgets.QMenu(self.ui.menubar)
         self.ui.menuMotors.setObjectName("menuMotors")
-        self.ui.menuMotors.setTitle("Motors")
+        self.ui.menuMotors.setTitle("&Motors")
         self.ui.menuPositioners.addAction(self.ui.menuMotors.menuAction())
         # Scans menu
         self.ui.menuScans = QtWidgets.QMenu(self.ui.menubar)
         self.ui.menuScans.setObjectName("menuScans")
-        self.ui.menuScans.setTitle("Scans")
+        self.ui.menuScans.setTitle("&Scans")
         self.ui.menubar.addAction(self.ui.menuScans.menuAction())
         # XAFS scan window
         self.add_menu_action(
             action_name="actionShow_Xafs_Scan",
-            text="XAFS Scan",
+            text="&XAFS Scan...",
             menu=self.ui.menuScans)
         # Detectors menu
         self.ui.menuDetectors = QtWidgets.QMenu(self.ui.menubar)
         self.ui.menuDetectors.setObjectName("menuDetectors")
-        self.ui.menuDetectors.setTitle("Detectors")
+        self.ui.menuDetectors.setTitle("&Detectors")
         self.ui.menubar.addAction(self.ui.menuDetectors.menuAction())        
         # Voltmeters window
         self.add_menu_action(
             action_name="actionShow_Voltmeters",
-            text="Ion Chambers",
+            text="&Ion Chambers...",
             menu=self.ui.menuDetectors)
         self.add_menu_action(
             action_name="actionShow_Cameras",
-            text="Cameras",
+            text="&Cameras...",
             menu=self.ui.menuDetectors)
         # Add actions to the motors sub-menus
         app = QtWidgets.QApplication.instance()
         for action in app.motor_actions:
             self.ui.menuMotors.addAction(action)
+        # Add run engine control menu
+        self.ui.menuRunEngine = QtWidgets.QMenu(self.ui.menubar)
+        self.ui.menuRunEngine.setObjectName("menuRunEngine")
+        self.ui.menuRunEngine.setTitle("&Run Engine")
+        self.ui.menubar.addAction(self.ui.menuRunEngine.menuAction())
+        # Run engine control menu actions
+        self.ui.menuRunEngine.addAction(app.launch_queuemonitor_action)
+        self.ui.menuRunEngine.addSeparator()
+        self.ui.menuRunEngine.addAction(app.start_queue_action)
+        self.ui.menuRunEngine.addAction(app.pause_runengine_action)
+        self.ui.menuRunEngine.addAction(app.pause_runengine_now_action)
+        self.ui.menuRunEngine.addAction(app.resume_runengine_action)
+        self.ui.menuRunEngine.addAction(app.stop_runengine_action)
+        self.ui.menuRunEngine.addAction(app.abort_runengine_action)
+        self.ui.menuRunEngine.addAction(app.halt_runengine_action)
         # Add other menu actions
         self.ui.menuView.addAction(app.show_status_window_action)
-        self.ui.menuView.addAction(app.launch_queuemonitor_action)
-        self.ui.menuPositioners.addAction(app.show_energy_window_action)
+        self.ui.menuPositioners.addAction(app.show_energy_window_action)        
+        
 
     def update_window_title(self):
         if self.showing_file_path_in_title_bar:
