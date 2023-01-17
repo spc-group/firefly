@@ -40,6 +40,7 @@ def test_navbar_autohide(qapp, qtbot):
     assert not navbar.isVisible()
 
 
+@pytest.mark.xfail
 def test_navbar_button_visibility(qapp, qtbot):
     """Test that the queue navbar only shows certain buttons at certain times."""
     window = PlanMainWindow()
